@@ -8,6 +8,7 @@ using System.Windows;
 
 namespace PLImgViewer
 {
+    public delegate void TransRealPos( double distance);
     public class MainModule
     {
         List<List<EventClass>>  EvtList;
@@ -19,6 +20,8 @@ namespace PLImgViewer
         Grid                    ImgGrid;
         LineProfile             LinePF;
         string[,]               ImgPathBox;
+
+        public event TransRealPos evtTransRealPos;
 
         public MainModule()
         {
@@ -61,7 +64,7 @@ namespace PLImgViewer
             }
         }
 
-        /*
+        /* Zoom
          1. 이벤트로 받은 포인트를 가져온다. 
          2. 포인트를 정렬한다. 
          3. ZoomData에 방금 구한 데이터들을 넣는다. 
@@ -92,59 +95,73 @@ namespace PLImgViewer
             return result;
         }
 
-        /*
+        /* Line Profile
          * 1. 포인트 가져오기
          * 2. 포인트가 원본의 어느 위치인지 계산한다. 
          * 3. 원본위의 포인트를 이용해 직선을 만들고, 각 직선이 지나가는 Dat파일들을 구한다. 
          * 4. 각각의 dat파일에서 직선이 통과하는 점들의 값을 가져온다.
          * 5. 각각의 점들의 값의 리스트를 그래프로 그린다.  
          */
+        #region LineProfile
         public async Task<byte[]> AsyStartProfile(Point startPoint, Point endPoint)
         {
             Point realstart = new Point();
             Point realend   = new Point();
             double scale    = 0;
 
-            await Task.Run(()=> ZomClass.CalcRealWH(scale, ConData, startPoint, endPoint, out realstart, out realend)); // ok
-            await Task.Run(()=>LinePF.SetLineProfile(realstart, realend, ConData)); // ok
+            await Task.Run(()=> ZomClass.CalcRealWH(scale, ConData, startPoint, endPoint, out realstart, out realend)); // sjw need Currying
+            evtTransRealPos( await Task.Run( () => LinePF.EuclideanDistance( ImgInfo.PixelResolution )( realstart )( realend ) ) );
+            await Task.Run(()=> LinePF.SetLineProfile(realstart, realend, ConData)); 
             return LinePF.GetLineProfileData(ImgPathBox);
         }
+        
+        #endregion
 
-        public void SetScale(int rowcol,int canvWH,int oriWH)
+        #region Set Method
+        public void SetScale( int rowcol , int canvWH , int oriWH )
         {
             double unitnum  = rowcol * oriWH;
             double ratio =  oriWH / unitnum;
             int count = 1;
-            while (unitnum > 5000000 * count)
+            while ( unitnum > 5000000 * count )
             {
                 count++;
             }
             scalData.OriginalScale = count;
         }
 
-        public void SetControlData(int imgW, int imgH, int canvW, int canvH)
+        public void SetControlData( int imgW , int imgH , int canvW , int canvH )
         {
-            ConData.SetData(imgW, imgH, canvW, canvH);
+            ConData.SetData( imgW , imgH , canvW , canvH );
         }
 
-        public void SetControlDataRCNum(int gridrow, int gridcol)
+        public void SetContDataRCNumAndPath( int gridrow , int gridcol )
         {
             ConData.GridRowNum = gridrow;
             ConData.GridColNum = gridcol;
-            SetImgPath(ConData);
+            SetImgPath( ConData );
         }
 
-        void SetImgPath(ControlData conData)
+        public void SetContDataRCNum( int gridrow , int gridcol )
         {
-            ImgPathBox = new string[conData.GridRowNum, conData.GridColNum];
+            ConData.GridRowNum = gridrow;
+            ConData.GridColNum = gridcol;
         }
 
+        void SetImgPath( ControlData conData )
+        {
+            ImgPathBox = new string[conData.GridRowNum , conData.GridColNum];
+        }
         public void OnOffGridLine()
         {
-            if (ImgGrid.ShowGridLines == false)
+            if ( ImgGrid.ShowGridLines == false )
             { ImgGrid.ShowGridLines = true; }
             else
             { ImgGrid.ShowGridLines = false; }
         }
+        #endregion
+
+
+
     }
 }

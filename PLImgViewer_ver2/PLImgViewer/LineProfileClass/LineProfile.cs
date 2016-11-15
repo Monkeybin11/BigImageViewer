@@ -24,6 +24,51 @@ namespace PLImgViewer
             InitData(startRealP, endRealP, condata);
         }
 
+        public Func<Point , Func<Point , double>> EuclideanDistance(double resol ) // Need Currying for Simple Implement
+        {
+            var MultResolution  = GetMultiply(resol);
+           
+
+            Func<Point, Func<Point,double>> calcDistance = ( inputStartPos =>
+            {
+                var DisFromStart    = GetDis(inputStartPos);
+
+                Func<Point , double> calcDis2End = (inputEndPos=>
+                {
+                    return MultResolution( Math.Sqrt( DisFromStart(inputEndPos) )  );
+                } );
+
+                return calcDis2End;
+            });
+            
+            return calcDistance;
+        }
+
+        #region Helper
+        Func<double , double> GetAdd( double input )
+        {
+            return x => input + x;
+        }
+
+        Func<double, double> GetSub( double input )
+        {
+            return x=> input - x;
+        }
+
+        Func<double,double> GetMultiply (double input )
+        {
+            return x => input * x;
+        }
+
+        Func<Point,double> GetDis (Point endPoint )
+        {
+            return x => Math.Pow(( endPoint.X - x.X ),2) + Math.Pow(( endPoint.Y - x.Y ),2); 
+        }
+
+        
+
+        #endregion
+
         #region InitData Member
         public void InitData(Point startRealP, Point endRealP, ControlData condata)
         {

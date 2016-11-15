@@ -47,6 +47,7 @@ namespace PLImgViewer
             Mainmod = new MainModule();
             SetImgGridInfo();
             InitLineProfData();
+            Mainmod.evtTransRealPos += new TransRealPos( DisplayDistance );
         }
 
         #region Init
@@ -57,22 +58,21 @@ namespace PLImgViewer
         {
             int width = Convert.ToInt32(txbW.Text);
             int height = Convert.ToInt32(txbH.Text);
-
-            ImgInfo.SetImgInfo(width, height);
+            double pixelresol = Convert.ToDouble(txbResol.Text);
+            ImgInfo.SetImgInfo(width, height, pixelresol );
         }
 
         void InitControlData()
         {
-            int zomW = (int)imgzommed.Width;
-            int zomH = (int)imgzommed.Height;
-            int canvW = (int)canvRoot.Width;
-            int canvH = (int)canvRoot.Height;
+            int zomW   = (int)imgzommed.Width;
+            int zomH   = (int)imgzommed.Height;
+            int canvW  = (int)canvRoot.Width;
+            int canvH  = (int)canvRoot.Height;
             int rownum = Convert.ToInt32(txbRowNum.Text);
             int colnum = Convert.ToInt32(txbColNum.Text);
 
             Mainmod.SetControlData(zomW, zomH, canvW, canvH);
-            Mainmod.SetControlDataRCNum(rownum, colnum);
-
+            Mainmod.SetContDataRCNumAndPath(rownum, colnum);
         }
 
         void InitLineProfData()
@@ -103,7 +103,10 @@ namespace PLImgViewer
 
             ImgInfo.W = Convert.ToInt32(txbW.Text);
             ImgInfo.H = Convert.ToInt32(txbH.Text);
-            InitControlData();
+            ImgInfo.PixelResolution = Convert.ToDouble( txbResol.Text );
+            int rownum = Convert.ToInt32(txbRowNum.Text);
+            int colnum = Convert.ToInt32(txbColNum.Text);
+            Mainmod.SetContDataRCNum( rownum , colnum );
         }
         private void btnDisplayLine_Click(object sender, RoutedEventArgs e)
         {
@@ -225,6 +228,8 @@ namespace PLImgViewer
             Mouse.OverrideCursor = null;
         }
 
+        
+
         private void canvRoot_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             canvRoot.Children.Remove(rect);
@@ -257,6 +262,9 @@ namespace PLImgViewer
                 (Action)( () => seriescol[0].Values = chartV)) );
         }
 
+      
+        
+
         void connectValue()
         {
             chartV = new ChartValues<int>(YValue);
@@ -282,6 +290,15 @@ namespace PLImgViewer
                 output.Add((int)input[i]);
             }
             return output;
+        }
+        #endregion
+
+        #region Evetn From Control
+        void DisplayDistance( double distance )
+        {
+            txbLineLength.Dispatcher.BeginInvoke( ( Action ) ( () =>
+            txbLineLength.Text = distance.ToString("#.##") ) );
+            Console.WriteLine( distance.ToString() );
         }
         #endregion
     }

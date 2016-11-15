@@ -966,8 +966,8 @@ namespace PLImgViewer
 
             realPStart.X = (int)((double)start.X * ratioW);
             realPStart.Y = (int)((double)start.Y * ratioH);
-            realPEnd.X = (int)((double)end.X * ratioW);
-            realPEnd.Y = (int)((double)end.Y * ratioH);
+            realPEnd.X   = (int)((double)end.X * ratioW);
+            realPEnd.Y   = (int)((double)end.Y * ratioH);
         }
 
     }
