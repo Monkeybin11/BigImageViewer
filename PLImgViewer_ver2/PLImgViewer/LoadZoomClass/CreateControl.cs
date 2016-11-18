@@ -9,8 +9,12 @@ using System.Windows.Media;
 
 namespace PLImgViewer
 {
+    public delegate void TransDwedSampleData( byte[,] inputarr);
+    public delegate void TransDwedSamplePointData( System.Windows.Point input );
     public class CreateControl
     {
+        public event TransDwedSampleData evtTransDwedSampleData;
+        public event TransDwedSampleData evtTransDwedSamplePointData;
         public Grid DrawGrid( Canvas canvas ,int row, int col, int width, int height)
         {
             Grid grid = new Grid();
@@ -18,7 +22,6 @@ namespace PLImgViewer
             grid.Height = canvas.Height;
             grid.ShowGridLines = true;
             grid.Background = System.Windows.Media.Brushes.Transparent;
-            //imgGrid.Margin = new Thickness(10, 10, 10, 10);
             Grid.SetRow(grid, 1);
             for (int i = 0; i < row; i++)
             {
@@ -41,7 +44,6 @@ namespace PLImgViewer
             stp.AllowDrop = true;
             stp.Width = width;
             stp.Height = height;
-            //stp.Margin = new Thickness(1, 1, 1, 1);
             Grid.SetRow(stp, i);
             Grid.SetColumn(stp, j);
 
@@ -57,6 +59,11 @@ namespace PLImgViewer
 
             stp.Children.Add(imgpanel);
             return stp;
+        }
+
+        public byte[,] TransDwedSample( byte[,] input)
+        {
+            return input;
         }
 
     }

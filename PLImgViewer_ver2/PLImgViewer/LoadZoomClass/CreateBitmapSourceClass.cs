@@ -27,7 +27,7 @@ namespace PLImgViewer
             }
         }
 
-        static BitmapSource ToWpfBitmap(Bitmap bitmap)
+        public static BitmapSource ToWpfBitmap(Bitmap bitmap)
         {
             try
             {

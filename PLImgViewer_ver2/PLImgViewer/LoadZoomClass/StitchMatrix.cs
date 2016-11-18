@@ -13,7 +13,7 @@ namespace PLImgViewer
         Accord.Imaging.Converters.MatrixToImage Matrix2Bitmap;
         Accord.Imaging.Converters.ImageToMatrix Bitmap2matrix;
 
-        public byte[,] StitchImage(List<List<byte[,]>> input)
+        public byte[,] StitchArr(List<List<byte[,]>> input)
         {
             byte[,] origin = StitchLine2Line(StitchOneLine(input));
             return origin;

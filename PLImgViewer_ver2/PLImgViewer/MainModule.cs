@@ -5,13 +5,26 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows;
+using System.Media;
+using Accord.Imaging.Converters;
+using Accord.Math;
+using System.Drawing;
+using System.Windows.Media.Imaging;
+using System.IO;
 
 namespace PLImgViewer
 {
+    public delegate void TransDwedColorArr();
+
+    public enum ColorCovMode {
+        Rainbow,
+        None
+    }
+
     public delegate void TransRealPos( double distance);
     public class MainModule
     {
-        List<List<EventClass>>  EvtList;
+        List<List<EventClass>>  EvtList; // First is row, second is col Number
         ZoomClass               ZomClass;
         ZoomData                ZomData;
         StitchMatrix            Stm;
@@ -20,6 +33,12 @@ namespace PLImgViewer
         Grid                    ImgGrid;
         LineProfile             LinePF;
         string[,]               ImgPathBox;
+        ColorCovMode            ConvColorMode;
+        System.Windows.Point    CurrentPoint;
+        bool                    IsColorConverted;
+
+        BitmapSource            ZoomGray;
+        BitmapSource            ZoomColor;
 
         public event TransRealPos evtTransRealPos;
 
@@ -36,6 +55,8 @@ namespace PLImgViewer
         public void CreateGridPanelEvent(Canvas rootcanv)
         {
             CreateControl createcon = new CreateControl();
+            //createcon.evtTransDwedSampleData += ApplyColorMethod; // convert color
+            //createcon.evtTransDwedSamplePointData += SetCurrentPoint;
 
             /*----- Grid ------*/
             int width = (int)((ConData.CanvWidth)   / ConData.GridColNum);
@@ -71,20 +92,22 @@ namespace PLImgViewer
          4. 이제 위에서 구한 데이터로 매트릭스 리스트를 만든다. 
              
              */
-        public async Task<byte[,]> StartZoom(Point startPoint,Point endPoint)
+        public async Task<BitmapSource> StartZoom( System.Windows.Point startPoint , System.Windows.Point endPoint )
         {
             if (ImgPathBox == null)
-            { return new byte[0, 0]; }
+            { return null; }
             else
             {
-                Point realstart = new Point();
-                Point realend = new Point();
+                System.Windows.Point realstart = new System.Windows.Point();
+                System.Windows.Point realend = new System.Windows.Point();
                 ZomClass.CalcRealWH(scalData.OriginalScale, ConData, startPoint, endPoint, out realstart, out realend); // 실제 이미지의 픽셀위치로 변환
                 ZomData = ZomClass.SetStartEndPoint(realstart, realend, ImgInfo.W, ImgInfo.H); // ZoomData 세팅
                 List<List<byte[,]>>  splitedmat = await asyList2ScaledmatList(ImgPathBox, ZomData);
                 Stm = new StitchMatrix();
-                byte[,] output = await Task.Run(()=> Stm.StitchImage(splitedmat));
-                //splitedmat = null;
+                byte[,] stitchedArr = Stm.StitchArr(splitedmat);
+                BitmapSource output = await Task.Run(()=> CreateBitmapSourceClass.CreateBitmapSource( stitchedArr));
+                ZoomGray = output;
+                await Task.Run( ()=> ZoomColor = Arr2Source( stitchedArr ) );
                 return output;
             }
         }
@@ -102,11 +125,12 @@ namespace PLImgViewer
          * 4. 각각의 dat파일에서 직선이 통과하는 점들의 값을 가져온다.
          * 5. 각각의 점들의 값의 리스트를 그래프로 그린다.  
          */
+
         #region LineProfile
-        public async Task<byte[]> AsyStartProfile(Point startPoint, Point endPoint)
+        public async Task<byte[]> AsyStartProfile( System.Windows.Point startPoint , System.Windows.Point endPoint )
         {
-            Point realstart = new Point();
-            Point realend   = new Point();
+            System.Windows.Point realstart = new System.Windows.Point();
+            System.Windows.Point realend   = new System.Windows.Point();
             double scale    = 0;
 
             await Task.Run(()=> ZomClass.CalcRealWH(scale, ConData, startPoint, endPoint, out realstart, out realend)); // sjw need Currying
@@ -161,7 +185,95 @@ namespace PLImgViewer
         }
         #endregion
 
+        #region Convert Color
+        public void SetCurrentPoint( System.Windows.Point input )
+        {
+            CurrentPoint = input;
+        }
 
+        public Func<byte[] , Color[]> ConvertColor(ColorCovMode colorMode)
+        {
+            Func<byte[],Color[]> convertmethod = input => ColorConvertMethod(colorMode , input);
+            return convertmethod;
+        }
+
+        Color[] ColorConvertMethod( ColorCovMode colorMode , byte[] input)
+        {
+            Color[] output; 
+            switch ( colorMode )
+            {
+                case ColorCovMode.None:
+                    break;
+
+                case ColorCovMode.Rainbow:
+                    RainbowGradation colormap = new RainbowGradation();
+                    System.Drawing.Color[] clrmap = colormap.GetGradation( 255 , false );
+                    output = new Color[input.GetLength( 0 )];
+                    for ( int i = 0 ; i < input.GetLength(0) ; i++ )
+                    {
+                        output[i] = clrmap[input[i]];
+                    }
+                    return output;      
+            }
+            return null;
+        }
+
+        #endregion
+
+        #region Color Convert
+        public void Convert2Color()
+        {
+            for ( int i = 0 ; i < EvtList.Count ; i++ )
+            {
+                for ( int j = 0 ; j < EvtList[i].Count ; j++ )
+                {
+                    EvtList[i][j].Img.Source = EvtList[i][j].RainbowImg;
+                }
+            }
+        }
+
+        public void Convert2Gray()
+        {
+            for( int i = 0 ; i < EvtList.Count; i++ )
+            {
+                for ( int j = 0 ; j < EvtList[i].Count ; j++ )
+                {
+                    EvtList[i][j].Img.Source = EvtList[i][j].OriginalImg;
+                }
+            }
+        }
+
+        BitmapSource Arr2Source( byte[,] input )
+        {
+            byte[] flatMatrix = input.Flatten<byte>();
+            Color[] rainbowArr = ConvertColor( ColorCovMode.Rainbow )( flatMatrix );
+            ArrayToImage convertor = new ArrayToImage(input.GetLength(1),input.GetLength(0));
+            System.Drawing.Bitmap imgbit= new System.Drawing.Bitmap(input.GetLength(1),input.GetLength(0));
+            convertor.Convert( rainbowArr , out imgbit );
+            return CreateBitmapSourceClass.ToWpfBitmap( imgbit );
+        }
+
+        public void ZoomColorChange(System.Windows.Controls.Image imgpanel ,bool IsColorized)
+        {
+            var stackSource2ZoomPanel = ZoomImgSourceSet( imgpanel );
+            if ( IsColorized ){
+                stackSource2ZoomPanel( ZoomGray );
+            }
+            else
+            {
+                stackSource2ZoomPanel( ZoomColor );
+            }
+        }
+
+        Action<BitmapSource> ZoomImgSourceSet( System.Windows.Controls.Image imagepanel )
+        {
+            Action<BitmapSource> action = sourceInput =>
+            {
+                imagepanel.Source = sourceInput;
+            };
+            return action;
+        }
+        #endregion
 
     }
 }

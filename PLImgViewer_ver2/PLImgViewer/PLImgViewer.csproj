@@ -131,6 +131,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ColorConvertedImgData\RainbowImgData.cs" />
+    <Compile Include="Color_Data\GrayGradation.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Color_Data\HSVGradation.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Color_Data\IGradation.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Color_Data\RainbowGradation.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="LineProfileClass\LineEqData.cs" />
     <Compile Include="LineProfileClass\LineProfile.cs" />
     <Compile Include="LineProfileClass\LineProfileData.cs" />

@@ -35,6 +35,8 @@ namespace PLImgViewer
         MainModule  Mainmod;
         bool CtrlPushed;
         bool AltPushed;
+        bool IsColorized = false;
+        bool IsZoomColorized = false;
 
         public SeriesCollection seriesbox { get; set; }
         public ChartValues<int> chartV { get; set; }
@@ -186,7 +188,7 @@ namespace PLImgViewer
             #endregion
         }
 
-        /*
+        /* 시퀀스
         1. string[,] 으로 파일 경로 매트릭스 만들기
         2. 줌을 하는 파일의 갯수 + 원본 파일의 크기로 스케일 정하기.
         3. 줌하는 영역 계산. (시작하는 파일 끝나는 파일, 각 파일별로 시작 끝점 계산)
@@ -203,17 +205,18 @@ namespace PLImgViewer
             StitchMatrix smat = new StitchMatrix();
             canvRoot.Children.Remove(rect);
 
+            #region Zoom
             if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && CtrlPushed == true)
             {
                 txbZoomStatus.Text = "Busy";
                 endPoint = e.GetPosition(canvRoot);
 
-                byte[,] stitchedArr = await Mainmod.StartZoom(startPoint, endPoint);
-                imgzommed.Source = CreateBitmapSourceClass.CreateBitmapSource(stitchedArr);
+                imgzommed.Source = await Mainmod.StartZoom(startPoint, endPoint);
                 txbZoomStatus.Text = "Ready";
             }
+            #endregion
 
-            #region DrawLine
+            #region Line Profile
             if ((Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt)) && AltPushed == true)
             {
                 txbZoomStatus.Text = "Busy";
@@ -227,8 +230,6 @@ namespace PLImgViewer
             #endregion
             Mouse.OverrideCursor = null;
         }
-
-        
 
         private void canvRoot_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -301,5 +302,32 @@ namespace PLImgViewer
             Console.WriteLine( distance.ToString() );
         }
         #endregion
+
+        private void btnOriginColorChange_Click( object sender , RoutedEventArgs e )
+        {
+            if ( IsColorized ) {
+                Mainmod.Convert2Gray();
+                IsColorized = false;
+            }
+            else{
+                Mainmod.Convert2Color();
+                IsColorized = true;
+            }
+        }
+
+        private void btnZoomedColorChange_Click( object sender , RoutedEventArgs e )
+        {
+            if ( IsZoomColorized )
+            {
+                Mainmod.ZoomColorChange( imgzommed , IsZoomColorized );
+                IsZoomColorized = false;
+            }
+            else
+            {
+                Mainmod.ZoomColorChange( imgzommed , IsZoomColorized );
+                IsZoomColorized = true;
+            }
+            
+        }
     }
 }
