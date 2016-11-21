@@ -18,6 +18,7 @@ namespace PLImgViewer
 
     public enum ColorCovMode {
         Rainbow,
+        HSV,
         None
     }
 
@@ -38,7 +39,8 @@ namespace PLImgViewer
         bool                    IsColorConverted;
 
         BitmapSource            ZoomGray;
-        BitmapSource            ZoomColor;
+        BitmapSource            ZoomRain;
+        BitmapSource            ZoomHsv;
 
         public event TransRealPos evtTransRealPos;
 
@@ -107,7 +109,8 @@ namespace PLImgViewer
                 byte[,] stitchedArr = Stm.StitchArr(splitedmat);
                 BitmapSource output = await Task.Run(()=> CreateBitmapSourceClass.CreateBitmapSource( stitchedArr));
                 ZoomGray = output;
-                await Task.Run( ()=> ZoomColor = Arr2Source( stitchedArr ) );
+                await Task.Run( ()=> ZoomRain = Arr2Source( stitchedArr , ColorCovMode.Rainbow ) );
+                await Task.Run( ()=> ZoomHsv = Arr2Source( stitchedArr , ColorCovMode.HSV ) );
                 return output;
             }
         }
@@ -206,14 +209,23 @@ namespace PLImgViewer
                     break;
 
                 case ColorCovMode.Rainbow:
-                    RainbowGradation colormap = new RainbowGradation();
-                    System.Drawing.Color[] clrmap = colormap.GetGradation( 255 , false );
+                    RainbowGradation colormaprain = new RainbowGradation();
+                    System.Drawing.Color[] clrmaprain = colormaprain.GetGradation( 255 , false );
                     output = new Color[input.GetLength( 0 )];
                     for ( int i = 0 ; i < input.GetLength(0) ; i++ )
                     {
-                        output[i] = clrmap[input[i]];
+                        output[i] = clrmaprain[input[i]];
                     }
-                    return output;      
+                    return output;
+                case ColorCovMode.HSV:
+                    HSVGradation colormaphsv = new HSVGradation();
+                    System.Drawing.Color[] clrmaphsv = colormaphsv.GetGradation( 255 , false );
+                    output = new Color[input.GetLength( 0 )];
+                    for ( int i = 0 ; i < input.GetLength( 0 ) ; i++ )
+                    {
+                        output[i] = clrmaphsv[input[i]];
+                    }
+                    return output;
             }
             return null;
         }
@@ -243,10 +255,10 @@ namespace PLImgViewer
             }
         }
 
-        BitmapSource Arr2Source( byte[,] input )
+        BitmapSource Arr2Source( byte[,] input , ColorCovMode colomod )
         {
             byte[] flatMatrix = input.Flatten<byte>();
-            Color[] rainbowArr = ConvertColor( ColorCovMode.Rainbow )( flatMatrix );
+            Color[] rainbowArr = ConvertColor( colomod )( flatMatrix );
             ArrayToImage convertor = new ArrayToImage(input.GetLength(1),input.GetLength(0));
             System.Drawing.Bitmap imgbit= new System.Drawing.Bitmap(input.GetLength(1),input.GetLength(0));
             convertor.Convert( rainbowArr , out imgbit );
@@ -261,7 +273,7 @@ namespace PLImgViewer
             }
             else
             {
-                stackSource2ZoomPanel( ZoomColor );
+                stackSource2ZoomPanel( ZoomHsv );
             }
         }
 

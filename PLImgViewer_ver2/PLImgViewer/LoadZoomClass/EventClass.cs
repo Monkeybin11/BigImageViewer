@@ -22,6 +22,7 @@ namespace PLImgViewer
         public double Scale;
         public BitmapSource OriginalImg;
         public BitmapSource RainbowImg;
+        public BitmapSource HSVImg;
 
         public EventClass(StackPanel btn , System.Windows.Controls.Image img , int row, int col, string[,] pathbox,double scale)
         {
@@ -47,13 +48,14 @@ namespace PLImgViewer
             Img.Source  = result;
             OriginalImg = result;
 
-            Task.Run( () => RainbowImg = CreateRainbowImg( byteMatrix , byteMatrix.GetLength( 1 ) , byteMatrix.GetLength( 0 ) ));
+            Task.Run( () => RainbowImg = CreateColoredImg( byteMatrix , byteMatrix.GetLength( 1 ) , byteMatrix.GetLength( 0 ) , ColorCovMode.Rainbow));
+            Task.Run( () => HSVImg = CreateColoredImg( byteMatrix , byteMatrix.GetLength( 1 ) , byteMatrix.GetLength( 0 ) , ColorCovMode.HSV));
         }
 
-        BitmapSource CreateRainbowImg( byte[,] byteMatrix ,int width, int height )
+        BitmapSource CreateColoredImg( byte[,] byteMatrix ,int width, int height , ColorCovMode colormod)
         {
             byte[] flatMatrix = byteMatrix.Flatten<byte>();
-            Color[] rainbowArr = ConvertColor( ColorCovMode.Rainbow )( flatMatrix );
+            Color[] rainbowArr = ConvertColor( colormod )( flatMatrix );
             ArrayToImage convertor = new ArrayToImage(width,height);
             System.Drawing.Bitmap imgbit= new System.Drawing.Bitmap(width,height);
             convertor.Convert( rainbowArr , out imgbit );
