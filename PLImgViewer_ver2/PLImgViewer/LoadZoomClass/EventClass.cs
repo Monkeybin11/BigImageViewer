@@ -54,41 +54,13 @@ namespace PLImgViewer
 
         BitmapSource CreateColoredImg( byte[,] byteMatrix ,int width, int height , ColorCovMode colormod)
         {
+            ColorConvertMethod cv = new ColorConvertMethod();
             byte[] flatMatrix = byteMatrix.Flatten<byte>();
-            Color[] rainbowArr = ConvertColor( colormod )( flatMatrix );
+            Color[] colorArr = cv.ConvertColor( colormod )( flatMatrix );
             ArrayToImage convertor = new ArrayToImage(width,height);
             System.Drawing.Bitmap imgbit= new System.Drawing.Bitmap(width,height);
-            convertor.Convert( rainbowArr , out imgbit );
+            convertor.Convert( colorArr , out imgbit );
             return CreateBitmapSourceClass.ToWpfBitmap( imgbit );
         }
-
-        Func<byte[] , Color[]> ConvertColor( ColorCovMode colorMode )
-        {
-            Func<byte[],Color[]> convertmethod = input => ColorConvertMethod(colorMode , input);
-            return convertmethod;
-        }
-        Color[] ColorConvertMethod( ColorCovMode colorMode , byte[] input )
-        {
-            Color[] output;
-            switch ( colorMode )
-            {
-                case ColorCovMode.None:
-                    break;
-
-                case ColorCovMode.Rainbow:
-                    RainbowGradation colormap = new RainbowGradation();
-                    System.Drawing.Color[] clrmap = colormap.GetGradation( 255 , false );
-                    output = new Color[input.GetLength( 0 )];
-                    for ( int i = 0 ; i < input.GetLength( 0 ) ; i++ )
-                    {
-                        output[i] = clrmap[input[i]];
-                    }
-                    return output;
-            }
-            return null;
-        }
-
-
-
     }
 }

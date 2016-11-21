@@ -35,8 +35,6 @@ namespace PLImgViewer
         MainModule  Mainmod;
         bool CtrlPushed;
         bool AltPushed;
-        bool IsColorized = false;
-        bool IsZoomColorized = false;
 
         public SeriesCollection seriesbox { get; set; }
         public ChartValues<int> chartV { get; set; }
@@ -100,9 +98,6 @@ namespace PLImgViewer
 
         private void btnetInfo_Click(object sender, RoutedEventArgs e)
         {
-            txbWStatus.Text = $"{txbW.Text}";
-            txbHStatus.Text = $"{txbH.Text}";
-
             ImgInfo.W = Convert.ToInt32(txbW.Text);
             ImgInfo.H = Convert.ToInt32(txbH.Text);
             ImgInfo.PixelResolution = Convert.ToDouble( txbResol.Text );
@@ -213,6 +208,7 @@ namespace PLImgViewer
 
                 imgzommed.Source = await Mainmod.StartZoom(startPoint, endPoint);
                 txbZoomStatus.Text = "Ready";
+                rbtnZoomGray.IsChecked = true;
             }
             #endregion
 
@@ -301,33 +297,41 @@ namespace PLImgViewer
             txbLineLength.Text = distance.ToString("#.##") ) );
             Console.WriteLine( distance.ToString() );
         }
+
+        #region Color Change
+        private void rbtnZoomRB_Checked( object sender , RoutedEventArgs e )
+        {
+            Mainmod.ZoomColorChange( imgzommed , ColorCovMode.Rainbow );
+        }
+
+        private void rbtnZoomHSV_Checked( object sender , RoutedEventArgs e )
+        {
+            Mainmod.ZoomColorChange( imgzommed , ColorCovMode.HSV );
+        }
+
+        private void rbtnZoomGray_Checked( object sender , RoutedEventArgs e )
+        {
+            Mainmod?.ZoomColorChange( imgzommed , ColorCovMode.Gray );
+        }
+
+        private void rbtnOriRB_Checked( object sender , RoutedEventArgs e )
+        {
+            Mainmod.Convert2RB();
+        }
+
+        private void rbtnOriHSV_Checked( object sender , RoutedEventArgs e )
+        {
+            Mainmod.Convert2HSV();
+        }
+
+        private void rbtnOriGray_Checked( object sender , RoutedEventArgs e )
+        {
+            Mainmod?.Convert2Gray();
+        }
+        #endregion
         #endregion
 
-        private void btnOriginColorChange_Click( object sender , RoutedEventArgs e )
-        {
-            if ( IsColorized ) {
-                Mainmod.Convert2Gray();
-                IsColorized = false;
-            }
-            else{
-                Mainmod.Convert2Color();
-                IsColorized = true;
-            }
-        }
+        // ---- Color Change ---- //
 
-        private void btnZoomedColorChange_Click( object sender , RoutedEventArgs e )
-        {
-            if ( IsZoomColorized )
-            {
-                Mainmod.ZoomColorChange( imgzommed , IsZoomColorized );
-                IsZoomColorized = false;
-            }
-            else
-            {
-                Mainmod.ZoomColorChange( imgzommed , IsZoomColorized );
-                IsZoomColorized = true;
-            }
-            
-        }
     }
 }

@@ -19,6 +19,7 @@ namespace PLImgViewer
     public enum ColorCovMode {
         Rainbow,
         HSV,
+        Gray,
         None
     }
 
@@ -34,9 +35,7 @@ namespace PLImgViewer
         Grid                    ImgGrid;
         LineProfile             LinePF;
         string[,]               ImgPathBox;
-        ColorCovMode            ConvColorMode;
         System.Windows.Point    CurrentPoint;
-        bool                    IsColorConverted;
 
         BitmapSource            ZoomGray;
         BitmapSource            ZoomRain;
@@ -194,52 +193,25 @@ namespace PLImgViewer
             CurrentPoint = input;
         }
 
-        public Func<byte[] , Color[]> ConvertColor(ColorCovMode colorMode)
-        {
-            Func<byte[],Color[]> convertmethod = input => ColorConvertMethod(colorMode , input);
-            return convertmethod;
-        }
-
-        Color[] ColorConvertMethod( ColorCovMode colorMode , byte[] input)
-        {
-            Color[] output; 
-            switch ( colorMode )
-            {
-                case ColorCovMode.None:
-                    break;
-
-                case ColorCovMode.Rainbow:
-                    RainbowGradation colormaprain = new RainbowGradation();
-                    System.Drawing.Color[] clrmaprain = colormaprain.GetGradation( 255 , false );
-                    output = new Color[input.GetLength( 0 )];
-                    for ( int i = 0 ; i < input.GetLength(0) ; i++ )
-                    {
-                        output[i] = clrmaprain[input[i]];
-                    }
-                    return output;
-                case ColorCovMode.HSV:
-                    HSVGradation colormaphsv = new HSVGradation();
-                    System.Drawing.Color[] clrmaphsv = colormaphsv.GetGradation( 255 , false );
-                    output = new Color[input.GetLength( 0 )];
-                    for ( int i = 0 ; i < input.GetLength( 0 ) ; i++ )
-                    {
-                        output[i] = clrmaphsv[input[i]];
-                    }
-                    return output;
-            }
-            return null;
-        }
-
-        #endregion
-
-        #region Color Convert
-        public void Convert2Color()
+      
+        public void Convert2RB()
         {
             for ( int i = 0 ; i < EvtList.Count ; i++ )
             {
                 for ( int j = 0 ; j < EvtList[i].Count ; j++ )
                 {
                     EvtList[i][j].Img.Source = EvtList[i][j].RainbowImg;
+                }
+            }
+        }
+
+        public void Convert2HSV()
+        {
+            for ( int i = 0 ; i < EvtList.Count ; i++ )
+            {
+                for ( int j = 0 ; j < EvtList[i].Count ; j++ )
+                {
+                    EvtList[i][j].Img.Source = EvtList[i][j].HSVImg;
                 }
             }
         }
@@ -254,27 +226,34 @@ namespace PLImgViewer
                 }
             }
         }
+        
+        public void ZoomColorChange(System.Windows.Controls.Image imgpanel , ColorCovMode colormod)
+        {
+            var stackSource2ZoomPanel = ZoomImgSourceSet( imgpanel );
+
+            switch ( colormod ) {
+                case ColorCovMode.Gray:
+                    stackSource2ZoomPanel( ZoomGray );
+                    break;
+                case ColorCovMode.Rainbow:
+                    stackSource2ZoomPanel( ZoomRain );
+                    break;
+                case ColorCovMode.HSV:
+                    stackSource2ZoomPanel( ZoomHsv );
+                    break;
+            }
+        }
 
         BitmapSource Arr2Source( byte[,] input , ColorCovMode colomod )
         {
+            ColorConvertMethod cv = new ColorConvertMethod();
+
             byte[] flatMatrix = input.Flatten<byte>();
-            Color[] rainbowArr = ConvertColor( colomod )( flatMatrix );
+            Color[] rainbowArr = cv.ConvertColor( colomod )( flatMatrix );
             ArrayToImage convertor = new ArrayToImage(input.GetLength(1),input.GetLength(0));
             System.Drawing.Bitmap imgbit= new System.Drawing.Bitmap(input.GetLength(1),input.GetLength(0));
             convertor.Convert( rainbowArr , out imgbit );
             return CreateBitmapSourceClass.ToWpfBitmap( imgbit );
-        }
-
-        public void ZoomColorChange(System.Windows.Controls.Image imgpanel ,bool IsColorized)
-        {
-            var stackSource2ZoomPanel = ZoomImgSourceSet( imgpanel );
-            if ( IsColorized ){
-                stackSource2ZoomPanel( ZoomGray );
-            }
-            else
-            {
-                stackSource2ZoomPanel( ZoomHsv );
-            }
         }
 
         Action<BitmapSource> ZoomImgSourceSet( System.Windows.Controls.Image imagepanel )

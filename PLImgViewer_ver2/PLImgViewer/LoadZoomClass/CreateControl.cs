@@ -9,12 +9,9 @@ using System.Windows.Media;
 
 namespace PLImgViewer
 {
-    public delegate void TransDwedSampleData( byte[,] inputarr);
     public delegate void TransDwedSamplePointData( System.Windows.Point input );
     public class CreateControl
     {
-        public event TransDwedSampleData evtTransDwedSampleData;
-        public event TransDwedSampleData evtTransDwedSamplePointData;
         public Grid DrawGrid( Canvas canvas ,int row, int col, int width, int height)
         {
             Grid grid = new Grid();

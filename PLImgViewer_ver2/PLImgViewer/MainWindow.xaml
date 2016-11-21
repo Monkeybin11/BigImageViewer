@@ -116,23 +116,32 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row ="0"                        Text="-- Status --"             HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="14" >
                         </TextBlock>
-                        <TextBlock Grid.Row ="1"                        Text="Current Width      :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
-                        <TextBlock Grid.Row ="1" x:Name="txbWStatus"    Text="6130"     HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
-                        <TextBlock Grid.Row ="2"                        Text="Current Height     :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
-                        <TextBlock Grid.Row ="2" x:Name="txbHStatus"    Text="3255"     HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
-                        <TextBlock Grid.Row ="3"                        Text="Status                   :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
-                        <TextBlock Grid.Row ="3" x:Name="txbZoomStatus" Text="Ready"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
-                        <TextBlock Grid.Row ="4"                        Text="Start Point            :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
-                        <TextBlock Grid.Row ="4" x:Name="txbStartPos" Text="[ , ]"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
-                        <TextBlock Grid.Row ="5"                        Text="End Point             :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
-                        <TextBlock Grid.Row ="5" x:Name="txbEndPos" Text="[ , ]"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
-                        <TextBlock Grid.Row ="6"                        Text="Line Length (um) :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
-                        <TextBlock Grid.Row ="6" x:Name="txbLineLength" Text="0"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
+                        <TextBlock Grid.Row ="1"                        Text="Status                   :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
+                        <TextBlock Grid.Row ="1" x:Name="txbZoomStatus" Text="Ready"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
+                        <TextBlock Grid.Row ="2"                        Text="Start Point            :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
+                        <TextBlock Grid.Row ="2" x:Name="txbStartPos" Text="[ , ]"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
+                        <TextBlock Grid.Row ="3"                        Text="End Point             :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
+                        <TextBlock Grid.Row ="3" x:Name="txbEndPos" Text="[ , ]"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
+                        <TextBlock Grid.Row ="4"                        Text="Line Length (um) :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
+                        <TextBlock Grid.Row ="4" x:Name="txbLineLength" Text="0"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
 
-                        <Button x:Name="btnDisplayLine"  Grid.Row="7" Content="Display Grid" FontSize="14" Margin="8,0,8,2" Height="30" Style="{StaticResource AccentedSquareButtonStyle}" Click="btnDisplayLine_Click" />
-                        <Button x:Name="btnOriginColorChange"     Grid.Row="8" Content="origin Color Covert" FontSize="14" Margin="8,0,8,2" Height="30" Style="{StaticResource AccentedSquareButtonStyle}" Click="btnOriginColorChange_Click"/>
-                        <Button x:Name="btnZoomedColorChange"     Grid.Row="9" Content="Zoom Color Covert" FontSize="14" Margin="8,0,8,2" Height="30" Style="{StaticResource AccentedSquareButtonStyle}"  Click="btnZoomedColorChange_Click"/>
-                        
+                        <Button x:Name="btnDisplayLine"        Grid.Row="5" Content="Display Grid" FontSize="14" Margin="8,0,8,2" Height="30" Style="{StaticResource AccentedSquareButtonStyle}" Click="btnDisplayLine_Click" />
+                        <UniformGrid Rows="3" Columns="4" Grid.Row="6" Grid.RowSpan="3" Margin="10">
+                            <TextBlock Text=""       HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"       FontSize="12"/>
+                            <TextBlock Text="Gray"   HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"       FontSize="12"/>
+                            <TextBlock Text="RB"     HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"       FontSize="12"/>
+                            <TextBlock Text="HSV"    HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"       FontSize="12"/>
+                            
+                            <TextBlock Text="Original" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"   FontSize="12"/>
+                            <RadioButton x:Name="rbtnOriGray" GroupName="origin"    HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="True" Checked="rbtnOriGray_Checked"/>
+                            <RadioButton x:Name="rbtnOriRB"   GroupName="origin"    HorizontalAlignment="Center" VerticalAlignment="Center" Checked="rbtnOriRB_Checked"/>
+                            <RadioButton x:Name="rbtnOriHSV"  GroupName="origin"    HorizontalAlignment="Center" VerticalAlignment="Center" Checked="rbtnOriHSV_Checked"/>
+                           
+                            <TextBlock Text="Zoom" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"   FontSize="12"/>
+                            <RadioButton x:Name="rbtnZoomGray" GroupName="zoom" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="True" Checked="rbtnZoomGray_Checked"/>
+                            <RadioButton x:Name="rbtnZoomRB"   GroupName="zoom" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="rbtnZoomRB_Checked" />
+                            <RadioButton x:Name="rbtnZoomHSV"  GroupName="zoom" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="rbtnZoomHSV_Checked"/>
+                        </UniformGrid>
                     </Grid>
                  </StackPanel>
             </Grid>
