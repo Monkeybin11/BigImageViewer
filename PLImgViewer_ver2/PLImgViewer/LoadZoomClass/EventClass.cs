@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Accord.Math;
 using System.Drawing;
+using System.IO;
 
 namespace PLImgViewer
 {
@@ -34,23 +35,52 @@ namespace PLImgViewer
             Scale = scale;
         }
 
+		public void SaveImg()
+		{
+			string dirpath = Path.GetDirectoryName( ImgPathBox[Rownum,Colnum]);
+			string name = Path.GetFileNameWithoutExtension( ImgPathBox[Rownum,Colnum]);
+			string filepath = dirpath + "\\" +Rownum.ToString() +"_"+ Colnum.ToString() +"_"+ name +".bmp";
+
+			using ( var fs = new FileStream( filepath , FileMode.Create ) )
+			{
+				BitmapEncoder enc = new BmpBitmapEncoder();
+				enc.Frames.Add( BitmapFrame.Create( OriginalImg ) );
+				enc.Save( fs );
+			}
+		}
+
+
         public void DropEventMethod(object ss, DragEventArgs ee)
         {
             string[] files = (string[])ee.Data.GetData(DataFormats.FileDrop);
             ImgPathBox[Rownum, Colnum] = files[0];
+			AfterSetImage();
+		}
 
-            FormatConvert fcv           = new FormatConvert();
-            MatrixToImage Matrix2Bitmap = new MatrixToImage();
+		public void SetFile(string fpath)
+		{
+			ImgPathBox [ Rownum , Colnum ] = fpath;
+			AfterSetImage();
+		}
 
-            byte[,] byteMatrix          = fcv.Dat2DownMat(ImgPathBox[Rownum, Colnum], ImgInfo.WH, Scale);
-            BitmapSource result         = CreateBitmapSourceClass.CreateBitmapSource( byteMatrix );
+		Action AfterSetImage =>
+		() =>
+		{
+			FormatConvert fcv           = new FormatConvert();
+			MatrixToImage Matrix2Bitmap = new MatrixToImage();
 
-            Img.Source  = result;
-            OriginalImg = result;
+			//byte[,] byteMatrix          = fcv.Dat2MatEMD(ImgPathBox[Rownum, Colnum], ImgInfo.WH, Scale);
+			byte[] bytelist             = fcv.SimpleReadByte(ImgPathBox[Rownum, Colnum], ImgInfo.WH, Scale);
 
-            Task.Run( () => RainbowImg = CreateColoredImg( byteMatrix , byteMatrix.GetLength( 1 ) , byteMatrix.GetLength( 0 ) , ColorCovMode.Rainbow));
-            Task.Run( () => HSVImg = CreateColoredImg( byteMatrix , byteMatrix.GetLength( 1 ) , byteMatrix.GetLength( 0 ) , ColorCovMode.HSV));
-        }
+			BitmapSource result         = CreateBitmapSourceClass.CreateBitmapSource(bytelist ,ImgInfo.W,ImgInfo.H );
+
+			Img.Source = result;
+			OriginalImg = result;
+
+			Task.Run( () => RainbowImg = CreateColoredImgVector( bytelist , ImgInfo.W , ImgInfo.H , ColorCovMode.Rainbow ) );
+			Task.Run( () => HSVImg = CreateColoredImgVector( bytelist , ImgInfo.W , ImgInfo.H , ColorCovMode.HSV ) );
+		};
+
 
         BitmapSource CreateColoredImg( byte[,] byteMatrix ,int width, int height , ColorCovMode colormod)
         {
@@ -62,5 +92,18 @@ namespace PLImgViewer
             convertor.Convert( colorArr , out imgbit );
             return CreateBitmapSourceClass.ToWpfBitmap( imgbit );
         }
-    }
+
+		BitmapSource CreateColoredImgVector( byte [] byteMatrix , int width , int height , ColorCovMode colormod )
+		{
+			ColorConvertMethod cv = new ColorConvertMethod();
+			byte[] flatMatrix = byteMatrix;
+			Color[] colorArr = cv.ConvertColor( colormod )( flatMatrix );
+			ArrayToImage convertor = new ArrayToImage(width,height);
+			System.Drawing.Bitmap imgbit= new System.Drawing.Bitmap(width,height);
+			convertor.Convert( colorArr , out imgbit );
+			return CreateBitmapSourceClass.ToWpfBitmap( imgbit );
+		}
+
+
+	}
 }

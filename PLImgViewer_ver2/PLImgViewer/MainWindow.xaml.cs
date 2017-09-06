@@ -21,6 +21,8 @@ using System.Diagnostics;
 using MahApps.Metro.Controls;
 using LiveCharts;
 using LiveCharts.Wpf;
+using ApplicationUtilTool;
+using SpeedyCoding;
 
 namespace PLImgViewer
 {
@@ -35,6 +37,7 @@ namespace PLImgViewer
         MainModule  Mainmod;
         bool CtrlPushed;
         bool AltPushed;
+		EmdFileExport EmdExprt = new EmdFileExport();
 
         public SeriesCollection seriesbox { get; set; }
         public ChartValues<int> chartV { get; set; }
@@ -88,31 +91,111 @@ namespace PLImgViewer
         #region button Event
         private void btnCreateGrid_Click(object sender, RoutedEventArgs e)
         {
-            InitControlData();
-
-            int rownum = Convert.ToInt32(txbRowNum.Text);
-            int colnum = Convert.ToInt32(txbColNum.Text);
-            Mainmod.SetScale(rownum * colnum, (int)(canvRoot.Width * canvRoot.Height), ImgInfo.W * ImgInfo.H);
-            Mainmod.CreateGridPanelEvent(canvRoot);
+			CreaGrid(
+				Convert.ToInt32( txbRowNum.Text ) ,
+				Convert.ToInt32( txbColNum.Text ) );
         }
 
         private void btnetInfo_Click(object sender, RoutedEventArgs e)
         {
-            ImgInfo.W = Convert.ToInt32(txbW.Text);
-            ImgInfo.H = Convert.ToInt32(txbH.Text);
-            ImgInfo.PixelResolution = Convert.ToDouble( txbResol.Text );
-            int rownum = Convert.ToInt32(txbRowNum.Text);
-            int colnum = Convert.ToInt32(txbColNum.Text);
-            Mainmod.SetContDataRCNum( rownum , colnum );
-        }
+			SetInfo();
+		}
         private void btnDisplayLine_Click(object sender, RoutedEventArgs e)
         {
             Mainmod.OnOffGridLine();
         }
-        #endregion
 
-        #region Event
-        private void canvRoot_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		private void btnEmdLoad_Click( object sender , RoutedEventArgs e )
+		{
+
+			EmdExprt.Show();
+		}
+
+		private void btnSaveImg_Click( object sender , RoutedEventArgs e )
+		{
+			Mainmod.EvtList.ActLoop( x => x.SaveImg() );
+		}
+
+		private void btnDatListLoad_Click( object sender , RoutedEventArgs e )
+		{
+			OpenFileDialog ofd = new OpenFileDialog();
+			if ( ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK )
+			{
+				string dirpath = System.IO.Path.GetDirectoryName(ofd.FileName);
+				var infopath = System.IO.Path.Combine( dirpath , "info.txt" );
+
+				var list = Directory.GetFiles( dirpath )
+							.Where( x => System.IO.Path.GetExtension( x ) == ".dat" )
+							.Select( x => x )
+							.OrderBy(x => System.IO.Path.GetFileName(x) )
+							.ToList();
+				if ( !File.Exists( infopath ))
+				{
+					System.Windows.MessageBox.Show( "info.txt is not exist" );
+					return;
+				}
+
+				var columnNumber = list.Count();
+				var info = File.ReadAllText( infopath )
+								.Trim()
+								.Split( ',' )
+								.Select( x => Convert.ToInt32(x))
+								.ToList(); // block width = 1, height = 3
+
+
+				txbColNum.Text = columnNumber.ToString();
+				txbRowNum.Text = "1";
+
+
+				SetInfoFrom( info[1] , info[3] );
+
+				CreaGrid( 1 , columnNumber );
+				//SetInfo();
+
+
+				Mainmod.EvtList [ 0 ].ActLoop( ( x , i ) =>
+					   x.SetFile( list [ i ] ) );
+			}
+		}
+
+		Action SetInfo =>
+		() =>
+		{
+			ImgInfo.W = Convert.ToInt32( txbW.Text );
+			ImgInfo.H = Convert.ToInt32( txbH.Text );
+			ImgInfo.PixelResolution = Convert.ToDouble( txbResol.Text );
+			int rownum = Convert.ToInt32(txbRowNum.Text);
+			int colnum = Convert.ToInt32(txbColNum.Text);
+			Mainmod.SetContDataRCNum( rownum , colnum );
+		};
+
+		Action<int , int> SetInfoFrom =>
+		( W , H ) =>
+		{
+			txbW.Text = W.ToString();
+			txbH.Text = H.ToString();
+			ImgInfo.W = Convert.ToInt32( txbW.Text );
+			ImgInfo.H = Convert.ToInt32( txbH.Text );
+			ImgInfo.PixelResolution = Convert.ToDouble( txbResol.Text );
+			int rownum = Convert.ToInt32(txbRowNum.Text);
+			int colnum = Convert.ToInt32(txbColNum.Text);
+			Mainmod.SetContDataRCNum( rownum , colnum );
+		};
+
+		Action<int , int> CreaGrid =>
+		( rowN , colN ) =>
+		{
+			InitControlData();
+			Mainmod.SetScale( rowN * colN , ( int )( canvRoot.Width * canvRoot.Height ) , ImgInfo.W * ImgInfo.H );
+			Mainmod.CreateGridPanelEvent( canvRoot );
+		};
+
+
+
+		#endregion
+
+		#region Event
+		private void canvRoot_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             txbStartPos.Text = $" [ {e.GetPosition(canvRoot).X} , {e.GetPosition(canvRoot).Y} ]";
             if (e.LeftButton == MouseButtonState.Pressed && Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
@@ -328,10 +411,72 @@ namespace PLImgViewer
         {
             Mainmod?.Convert2Gray();
         }
-        #endregion
-        #endregion
 
-        // ---- Color Change ---- //
 
-    }
+
+
+		#endregion
+
+		#endregion
+
+		// ---- Color Change ---- //
+
+
+		#region Config
+		readonly string ConfigPath = AppDomain.CurrentDomain.BaseDirectory + "config.ini";
+		readonly string SettingSection = "Setting";
+
+		enum inikeys { Width, Height, Col, Row }
+
+	
+
+		private Tuple<string , string> Str2SetVal( string val )
+		{
+			var result = val.Match()
+							.With( x => val == "Width" , Tuple.Create(val , txbW.Text))
+							.With( x => val == "Height" , Tuple.Create(val ,txbH.Text))
+							.With( x => val == "Col" , Tuple.Create(val ,txbColNum.Text))
+							.With( x => val == "Row" , Tuple.Create(val ,txbRowNum.Text))
+							.Else( Tuple.Create(val , "") )
+							.Do();
+
+			//if ( result.Item2 == "" ) throw new Exception( "Setting Match Error" );
+			return result;
+		}
+
+		private System.Windows.Controls.TextBox Str2Txb( string val )
+		{
+			var result = val.Match()
+							.With( x => val == "Width"  , txbW)
+							.With( x => val == "Height" , txbH)
+							.With( x => val == "Col"    , txbColNum)
+							.With( x => val == "Row"    , txbRowNum)
+							.Else( new System.Windows.Controls.TextBox())
+							.Do();
+			return result;
+		}
+		#endregion
+		private void MetroWindow_Closing( object sender , System.ComponentModel.CancelEventArgs e )
+		{
+			new iniTool( ConfigPath )
+				.WriteValues(
+					SettingSection ,
+					Enum.GetNames( typeof( inikeys ) ).Select( x => Str2SetVal( x ) ).ToList() );
+		}
+
+		private void MetroWindow_Loaded( object sender , RoutedEventArgs e )
+		{
+			iniTool ini = new iniTool(ConfigPath);
+			var keylist = Enum.GetNames(typeof(inikeys));
+			var res = ini.GetValues(
+				SettingSection ,
+				keylist.ToList() );
+			keylist.Zip( res , ( f , s ) => Tuple.Create( f , s ) )
+				   .ToList()
+				   .ForEach( x =>
+						Str2Txb( x.Item1 ).Text = x.Item2 );
+		}
+
+	
+	}
 }

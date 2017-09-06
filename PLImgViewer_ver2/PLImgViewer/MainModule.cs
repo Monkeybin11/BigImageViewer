@@ -26,7 +26,7 @@ namespace PLImgViewer
     public delegate void TransRealPos( double distance);
     public class MainModule
     {
-        List<List<EventClass>>  EvtList; // First is row, second is col Number
+        public List<List<EventClass>>  EvtList; // First is row, second is col Number
         ZoomClass               ZomClass;
         ZoomData                ZomData;
         StitchMatrix            Stm;
@@ -99,18 +99,27 @@ namespace PLImgViewer
             { return null; }
             else
             {
-                System.Windows.Point realstart = new System.Windows.Point();
-                System.Windows.Point realend = new System.Windows.Point();
-                ZomClass.CalcRealWH(scalData.OriginalScale, ConData, startPoint, endPoint, out realstart, out realend); // 실제 이미지의 픽셀위치로 변환
-                ZomData = ZomClass.SetStartEndPoint(realstart, realend, ImgInfo.W, ImgInfo.H); // ZoomData 세팅
-                List<List<byte[,]>>  splitedmat = await asyList2ScaledmatList(ImgPathBox, ZomData);
-                Stm = new StitchMatrix();
-                byte[,] stitchedArr = Stm.StitchArr(splitedmat);
-                BitmapSource output = await Task.Run(()=> CreateBitmapSourceClass.CreateBitmapSource( stitchedArr));
-                ZoomGray = output;
-                await Task.Run( ()=> ZoomRain = Arr2Source( stitchedArr , ColorCovMode.Rainbow ) );
-                await Task.Run( ()=> ZoomHsv = Arr2Source( stitchedArr , ColorCovMode.HSV ) );
-                return output;
+				try
+				{
+					System.Windows.Point realstart = new System.Windows.Point();
+					System.Windows.Point realend = new System.Windows.Point();
+					ZomClass.CalcRealWH( scalData.OriginalScale , ConData , startPoint , endPoint , out realstart , out realend ); // 실제 이미지의 픽셀위치로 변환
+					ZomData = ZomClass.SetStartEndPoint( realstart , realend , ImgInfo.W , ImgInfo.H ); // ZoomData 세팅
+					List<List<byte[,]>>  splitedmat = await asyList2ScaledmatList(ImgPathBox, ZomData);
+					Stm = new StitchMatrix();
+					byte[,] stitchedArr = Stm.StitchArr(splitedmat);
+					BitmapSource output = await Task.Run(()=> CreateBitmapSourceClass.CreateBitmapSource( stitchedArr));
+					ZoomGray = output;
+					await Task.Run( () => ZoomRain = Arr2Source( stitchedArr , ColorCovMode.Rainbow ) );
+					await Task.Run( () => ZoomHsv = Arr2Source( stitchedArr , ColorCovMode.HSV ) );
+					return output;
+				}
+				catch ( Exception ex )
+				{
+					MessageBox.Show( ex.ToString() );
+					return null;
+				}
+               
             }
         }
 

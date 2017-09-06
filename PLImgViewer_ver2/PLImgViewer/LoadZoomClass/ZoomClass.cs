@@ -18,7 +18,7 @@ namespace PLImgViewer
         /* 메인 시퀀스  */
 
         public List<List<byte[,]>> AsyListDownScaledZoomedMat(string[,] input, ZoomData data)
-        {
+       {
             try
             {
 
@@ -70,7 +70,7 @@ namespace PLImgViewer
                     #region
                     for (int i = data.startNumX; i <= data.endNumX; i++)
                     {
-                        string path = input[i, data.startNumY];
+                        string path = input[data.startNumY , i ];
 
                         List<byte[,]> tempbox = new List<byte[,]>();
                         if (i == data.startNumX)
@@ -958,8 +958,8 @@ namespace PLImgViewer
 
         public void CalcRealWH(double scale, ControlData condata ,System.Windows.Point start, System.Windows.Point end, out System.Windows.Point realPStart, out System.Windows.Point realPEnd)
         {
-            double ratioW = condata.GridColNum * ImgInfo.W / condata.CanvWidth;//* scale;
-            double ratioH = condata.GridRowNum * ImgInfo.H / condata.CanvHeight; //* scale;
+            double ratioW = condata.GridColNum * ImgInfo.W / (double)condata.CanvWidth;//* scale;
+            double ratioH = condata.GridRowNum * ImgInfo.H / (double)condata.CanvHeight; //* scale;
             
             realPStart = new System.Windows.Point();
             realPEnd = new System.Windows.Point();

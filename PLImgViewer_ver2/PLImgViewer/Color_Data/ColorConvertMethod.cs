@@ -30,7 +30,7 @@ namespace PLImgViewer
                     output = new Color[input.GetLength( 0 )];
                     for ( int i = 0 ; i < input.GetLength( 0 ) ; i++ )
                     {
-                        output[i] = clrmaprain[input[i]];
+                        output[i] = clrmaprain[input[i] == 255 ? 254 : input[i]];
                     }
                     return output;
                 case ColorCovMode.HSV:
@@ -39,7 +39,7 @@ namespace PLImgViewer
                     output = new Color[input.GetLength( 0 )];
                     for ( int i = 0 ; i < input.GetLength( 0 ) ; i++ )
                     {
-                        output[i] = clrmaphsv[input[i]];
+                        output[i] = clrmaphsv[ input [ i ] == 255 ? 254 : input [ i ] ];
                     }
                     return output;
             }

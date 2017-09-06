@@ -49,28 +49,54 @@ namespace PLImgViewer
 
         public byte[,] Dat2DownMat(string path, int length, double scale)
         {
-            try
+			//try
+			//{
+			//	Matrix2Bitmap = new MatrixToImage();
+			//	Bitmap2matrix = new ImageToMatrix();
+			//
+			//	Stream loadstream = new FileStream(path, FileMode.Open);
+			//	byte[] oneshotVector = new byte[length];
+			//	loadstream.Read( oneshotVector , 0 , oneshotVector.Length );
+			//	loadstream.Dispose();
+			//
+			//	byte[,] temp = Vec2Mat(oneshotVector, ImgInfo.W, ImgInfo.H); // ok
+			//	oneshotVector = null;
+			//
+			//	Bitmap tempbit = new Bitmap(ImgInfo.W, ImgInfo.H, PixelFormat.Format4bppIndexed);
+			//	Matrix2Bitmap.Convert( temp , out tempbit );
+			//	temp = null;
+			//	Bitmap tempdown = new Bitmap(tempbit, new Size((int)(ImgInfo.W / scale), (int)(ImgInfo.H / scale)));
+			//	tempbit = null;
+			//	byte[,] arrdown = new byte[(int)(tempdown.Width / scale), (int)(tempdown.Height / scale)];
+			//	Bitmap2matrix.Convert( tempdown , out arrdown );
+			//	tempdown = null;
+			//	//arrdown = Matrix.Transpose(arrdown);
+			//	return arrdown;
+			//}
+
+			try
             {
                 Matrix2Bitmap = new MatrixToImage();
                 Bitmap2matrix = new ImageToMatrix();
 
-                Stream loadstream = new FileStream(path, FileMode.Open);
-                byte[] oneshotVector = new byte[length];
-                loadstream.Read(oneshotVector, 0, oneshotVector.Length);
-                loadstream.Dispose();
-                byte[,] temp = Vec2Mat(oneshotVector, ImgInfo.W, ImgInfo.H); // ok
+				Stream loadstream = new FileStream(path, FileMode.Open);
+				byte[] oneshotVector = new byte[length];
+				loadstream.Read(oneshotVector, 0, oneshotVector.Length);
+				loadstream.Dispose();
+
+				byte[,] temp = Accord.Math.Matrix.Transpose(Vec2Mat(oneshotVector, ImgInfo.W, ImgInfo.H)) ; // ok
                 oneshotVector = null;
 
-                Bitmap tempbit = new Bitmap(ImgInfo.W, ImgInfo.H, PixelFormat.Format4bppIndexed);
-                Matrix2Bitmap.Convert(temp, out tempbit);
-                temp = null;
-                Bitmap tempdown = new Bitmap(tempbit, new Size((int)(ImgInfo.W / scale), (int)(ImgInfo.H / scale)));
-                tempbit = null;
-                byte[,] arrdown = new byte[(int)(tempdown.Width / scale), (int)(tempdown.Height / scale)];
-                Bitmap2matrix.Convert(tempdown, out arrdown);
-                tempdown = null;
+                //Bitmap tempbit = new Bitmap(ImgInfo.W, ImgInfo.H, PixelFormat.Format4bppIndexed);
+                //Matrix2Bitmap.Convert(temp, out tempbit);
+                //temp = null;
+                //Bitmap tempdown = new Bitmap(tempbit, new Size((int)(ImgInfo.W / scale), (int)(ImgInfo.H / scale)));
+                //tempbit = null;
+                //byte[,] arrdown = new byte[(int)(tempdown.Width / scale), (int)(tempdown.Height / scale)];
+                //Bitmap2matrix.Convert(tempdown, out arrdown);
+                //tempdown = null;
                 //arrdown = Matrix.Transpose(arrdown);
-                return arrdown;
+                return temp;
             }
             catch (Exception ex)
             {
@@ -83,7 +109,32 @@ namespace PLImgViewer
         {
             byte[,] oneShotArray = Accord.Math.Matrix.Reshape(input, width, height);
             return Accord.Math.Matrix.Transpose(oneShotArray);
+            //return oneShotArray;
         }
 
-    }
+		public byte [ , ] Dat2MatEMD( string path , int length , double scale )
+		{
+
+			Stream loadstream = new FileStream(path, FileMode.Open);
+			byte[] oneshotVector = new byte[length];
+			loadstream.Read( oneshotVector , 0 , oneshotVector.Length );
+			loadstream.Dispose();
+			var res = oneshotVector.Reshape(ImgInfo.W, ImgInfo.H );
+			var res2 = Accord.Math.Matrix.Reshape( oneshotVector , ImgInfo.W, ImgInfo.H );
+
+			return res;
+		}
+
+		public byte [] SimpleReadByte( string path , int length , double scale )
+		{
+
+			Stream loadstream = new FileStream(path, FileMode.Open);
+			byte[] oneshotVector = new byte[length];
+			loadstream.Read( oneshotVector , 0 , oneshotVector.Length );
+			loadstream.Dispose();
+			return oneshotVector;
+		}
+
+
+	}
 }

@@ -1,0 +1,14 @@
+﻿<Window x:Class="PLImgViewer.EmdFileExport"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PLImgViewer"
+        mc:Ignorable="d"
+        Title="EmdFileExport" Height="300" Width="200">
+    <UniformGrid Rows="3">
+        <Button x:Name="btnEmdLoad" Grid.Row="0" Content="Load Emd" FontSize="15" Margin="10" Click="btnEmdLoad_Click"/>
+        <Button x:Name="btnEmdExtract" Content="Extract" FontSize="15" Margin="10" Click="btnEmdExtract_Click" />
+        <Button x:Name="btnToCsv" Content="To Csv" FontSize="15" Margin="10" Click="btnToCsv_Click" />
+    </UniformGrid>
+</Window>

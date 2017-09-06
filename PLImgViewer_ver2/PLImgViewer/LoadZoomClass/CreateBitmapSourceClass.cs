@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -11,7 +12,24 @@ namespace PLImgViewer
 {
     public static class CreateBitmapSourceClass
     {
-        public static BitmapSource CreateBitmapSource(byte[,] input)
+		public static BitmapSource CreateBitmapSource( byte [] input ,int w, int h )
+		{
+			try
+			{
+				IntPtr pt =  Marshal.UnsafeAddrOfPinnedArrayElement(input,0);
+				Bitmap bitout = new Bitmap( w, h , w, PixelFormat.Format8bppIndexed, pt);
+				
+				BitmapSource bitsource = ToWpfBitmap(bitout);
+				return bitsource;
+			}
+			catch ( Exception ex )
+			{
+				Console.WriteLine( ex.ToString() );
+				return null;
+			}
+		}
+
+		public static BitmapSource CreateBitmapSource(byte[,] input)
         {
             try
             {

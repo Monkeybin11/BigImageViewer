@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:PLImgViewer"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1000" Width="1480">
+        Title="MainWindow" Height="1000" Width="1480" Closing="MetroWindow_Closing" Loaded="MetroWindow_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
@@ -52,7 +52,11 @@
                     <RowDefinition Height="40"/>
                 </Grid.RowDefinitions>
 
-                <Button x:Name="btnDatListLoad" Grid.Row="0" Content="Load Dat" FontSize="14" Margin="5" Style="{StaticResource AccentedSquareButtonStyle}"/>
+                <UniformGrid Columns="2">
+                    <Button x:Name="btnDatListLoad" Grid.Row="0" Content="Load Dat" FontSize="14" Margin="5" Click="btnDatListLoad_Click"/>
+                    <Button x:Name="btnEmdLoad" Grid.Row="0" Content="Convert Emd" FontSize="14" Margin="5"  Click="btnEmdLoad_Click"/>
+                </UniformGrid>
+               
                 <StackPanel Grid.Row="1" Grid.RowSpan="5" Background="#CC119EDA" Orientation="Vertical"  Margin="5,3,5,0" >
                     <Grid>
                         <Grid.RowDefinitions>
@@ -64,7 +68,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row ="0" Text="-- Set Image Info --"  HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="14" />
 
-                        <Button x:Name="btnetInfo"     Grid.Row="4" Content="Set Info" FontSize="14" Margin="8,0,8,2" Height="30"  Style="{StaticResource AccentedSquareButtonStyle}" Click="btnetInfo_Click"/>
+                        <Button x:Name="btnetInfo"     Grid.Row="4" Content="Set Info" FontSize="14" Margin="8,0,8,2" Height="30"   Click="btnetInfo_Click"/>
 
                         <TextBlock Text=" Image Width  : " Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14"    Margin="10" />
                         <TextBox x:Name="txbW"  Grid.Row="1" FontSize="14" HorizontalAlignment="Right"  VerticalAlignment="Center" Text="6130"         Width="70"  Margin="10"/>
@@ -90,7 +94,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row ="0" Text="-- Create Grid --" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="14" />
 
-                        <Button x:Name="btnCreateGrid"  Grid.Row="3" Content="Create Grid" FontSize="14" Margin="8,0,8,2" Height="30" Style="{StaticResource AccentedSquareButtonStyle}" Click="btnCreateGrid_Click" />
+                        <Button x:Name="btnCreateGrid"  Grid.Row="3" Content="Create Grid" FontSize="14" Margin="8,0,8,2" Height="30"  Click="btnCreateGrid_Click" />
 
                         <TextBlock Text=" Row Number  :"    Grid.Row="1"   HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14"  Margin="10"/>
                         <TextBox x:Name="txbRowNum"         Grid.Row="1"   FontSize="14" HorizontalAlignment="Right"  VerticalAlignment="Center"  Text="2"      Width="70" Margin="10"/>
@@ -125,7 +129,7 @@
                         <TextBlock Grid.Row ="4"                        Text="Line Length (um) :"      HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10"/>
                         <TextBlock Grid.Row ="4" x:Name="txbLineLength" Text="0"                 HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" FontSize="14" Margin="10,10,30,10"/>
 
-                        <Button x:Name="btnDisplayLine"        Grid.Row="5" Content="Display Grid" FontSize="14" Margin="8,0,8,2" Height="30" Style="{StaticResource AccentedSquareButtonStyle}" Click="btnDisplayLine_Click" />
+                        <Button x:Name="btnDisplayLine"        Grid.Row="5" Content="Display Grid" FontSize="14" Margin="8,0,8,2" Height="30"  Click="btnDisplayLine_Click" />
                         <UniformGrid Rows="3" Columns="4" Grid.Row="6" Grid.RowSpan="3" Margin="10">
                             <TextBlock Text=""       HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"       FontSize="12"/>
                             <TextBlock Text="Gray"   HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"       FontSize="12"/>
@@ -142,6 +146,7 @@
                             <RadioButton x:Name="rbtnZoomRB"   GroupName="zoom" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="rbtnZoomRB_Checked" />
                             <RadioButton x:Name="rbtnZoomHSV"  GroupName="zoom" HorizontalAlignment="Center" VerticalAlignment="Center" Checked="rbtnZoomHSV_Checked"/>
                         </UniformGrid>
+                        <Button x:Name="btnSaveImg" Grid.Row="9" Content="Save" Margin="5" Click="btnSaveImg_Click"/>
                     </Grid>
                  </StackPanel>
             </Grid>
