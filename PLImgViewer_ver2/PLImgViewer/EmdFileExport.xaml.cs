@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using SpeedyCoding;
 using System.Windows.Forms;
 using System.IO;
+using System.Diagnostics;
 
 namespace PLImgViewer
 {
@@ -36,6 +37,7 @@ namespace PLImgViewer
 
 		private void btnEmdLoad_Click( object sender , RoutedEventArgs e )
 		{
+			Stopwatch stw = new Stopwatch();
 
 			OpenFileDialog ofd = new OpenFileDialog();
 			string emdpath = "";
@@ -45,12 +47,15 @@ namespace PLImgViewer
 				emdpath = ofd.FileName;
 			}
 			else return;
+
+
+			stw.Start();
 			var charList = File.ReadAllBytes( emdpath )
 						  .ByteArrayToHexViaLookup32Unsafe()
 						  .ToCharArray();
 
 			var grouped8bits = Enumerable.Range( 0 , charList.GetLength( 0 ) / 2 )
-				.Select( x => new string (
+				.AsParallel().Select( x => new string (
 								new char[] { charList [ x * 2 ] , charList [ x * 2 + 1 ] } ) )
 				.ToArray<string>();
 
@@ -62,10 +67,15 @@ namespace PLImgViewer
 				.Select( x => grouped16bits [ x * 2 ] + grouped16bits [ x * 2 + 1 ])
 				.ToArray<string>();
 
+			Console.WriteLine( "Step1 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
+
 			var indices = grouped32bits.IndicesOf( x => x == "FFFF0218") // Find Pattern
                                        .Select( x => x*4) // 32bits Len -> 8bits Len
                                        .ToArray<int>(); //  of 8bits 
 
+			Console.WriteLine( "Step2 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
 			Func<string[],int[],int> Hex4ToInt32 = // Local Function
                 (lst , idx) =>
 				{
@@ -82,7 +92,8 @@ namespace PLImgViewer
 								   16 ) ;
 				};
 
-
+			Console.WriteLine( "Step3 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
 
 			var infos = indices.Select(x =>
 							new {
@@ -101,6 +112,8 @@ namespace PLImgViewer
 								Index = x
 							}) // x is Header indices
                                     .ToList();
+			Console.WriteLine( "Step4 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
 
 			StringBuilder stb = new StringBuilder();
 			infos.ActLoop( x =>
@@ -118,7 +131,10 @@ namespace PLImgViewer
 
 			File.WriteAllText( dir + "info.csv" , stb.ToString());
 
-			var swapped = infos.Select( x =>
+			Console.WriteLine( "Step5 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
+
+			var swapped = infos.AsParallel().Select( x =>
 								   grouped8bits
 									.Skip(x.Index + 24)
 									.Take(x.DataCount)
@@ -129,10 +145,15 @@ namespace PLImgViewer
                                       .Select( s => (byte)(Convert.ToInt32( x [ s * 2 + 1 ] + x [ s * 2 ] , 16) * 255  / 65536.0) )  // To 8bits Normalize
                                       .ToArray<byte>())
 								.ToList(); // swaped data , 16bits data Array [[Int32]]
+			Console.WriteLine( "Step6 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
 
 			var infoWithData =
 				infos.Zip( swapped ,(f,s) => new EmdInfoData( f.TrackNum , f.BlockNum, s )
 				).ToList(); // [( TrackNum , BlockNum , Data)]
+
+			Console.WriteLine( "Step7 : " + stw.ElapsedMilliseconds );
+			stw.Restart();
 
 			var ordDataInfo = infoWithData
 								.OrderBy( x => x.TrackNum )
