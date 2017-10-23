@@ -5,10 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PLImgViewer"
         mc:Ignorable="d"
-        Title="EmdFileExport" Height="300" Width="200">
-    <UniformGrid Rows="3">
-        <Button x:Name="btnEmdLoad" Grid.Row="0" Content="Load Emd" FontSize="15" Margin="10" Click="btnEmdLoad_Click"/>
-        <Button x:Name="btnEmdExtract" Content="Extract" FontSize="15" Margin="10" Click="btnEmdExtract_Click" />
-        <Button x:Name="btnToCsv" Content="To Csv" FontSize="15" Margin="10" Click="btnToCsv_Click" />
-    </UniformGrid>
+        Title="EmdFileExport" Height="400" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <CheckBox x:Name="chbTB" Content="TopBot Reverse" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,0,0,0" IsChecked="True"/>
+        <CheckBox x:Name="chbRL" Content="Left Right Revers" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,60,0" IsChecked="False"/>
+        <Button x:Name="btnEmdLoad"   Grid.Row="1" Content="Load Emd" FontSize="15" Margin="10" Click="btnEmdLoad_Click"/>
+        <Label x:Name="lblProgress" Content="0" Grid.Row="2" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Label  Content="%" Grid.Row="2" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,140,0" />
+        <Button x:Name="btnToCsv"  Grid.Row="3"   Content="To Csv" FontSize="15" Margin="10" Click="btnToCsv_Click" />
+        <Label x:Name="lblSTatus"   Grid.Row="4"  Content="Waiting" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+    </Grid>
+    
+    
 </Window>

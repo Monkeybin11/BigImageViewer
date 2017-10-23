@@ -93,209 +93,164 @@ namespace PLImgViewer
 					lblProgress.Content = "0";
 
 					Stopwatch stw = new Stopwatch();
-					Task task1 = null;
-					if ( false )
+					var task1 = Task.Factory.StartNew( () =>
 					{
-						task1 = Task.Factory.StartNew( () =>
-						{
-							progress = 1.0;
+
+						var charList = File.ReadAllBytes( emdpath )
+						  .ByteArrayToHexViaLookup32Unsafe()
+						  .ToCharArray();
+						progress = 1.0;
+						var grouped8bits = Enumerable.Range( 0 , charList.GetLength( 0 ) / 2 ) // AB CD EF GH
+							.AsParallel().AsOrdered().Select( x => new string (
+								new char[] { charList [ x * 2 ] , charList [ x * 2 + 1 ] } ) )
+							.ToArray<string>();
 
 
-							var bits8list = File.ReadAllBytes( emdpath );
-
-							var oneblock = bits8list.Skip(32768).Take(224).ToArray();
-							File.WriteAllBytes(@"D:\03JobPro\2017\013_Polygon\temp\Block.csv" , oneblock);
-
-							ushort[] bits16list = new ushort[bits8list.Length / 2];
-							Buffer.BlockCopy(bits8list , 0 , bits16list,0,bits8list.Length);
-
-							uint[] bits32list = new uint[bits8list.Length / 4];
-							Buffer.BlockCopy(bits8list , 0 , bits32list,0,bits8list.Length);
-
-							//UInt64[] bits64list = new UInt64[bits8list.Length / 8];
-							//Buffer.BlockCopy(bits32list , 0 , bits64list,0,bits8list.Length);
-
-							var indices = bits32list.IndicesOf(x => x == 35192831)
-												.Select( x => x)
-												.ToArray<int>();
+						var grouped16bits = Enumerable.Range(0,grouped8bits.GetLength(0)/2) // 
+							.Select( x => grouped8bits [ x * 2 + 1 ] + grouped8bits [ x * 2 ])
+							.ToArray<string>();
 
 
+						var grouped64bits = Enumerable.Range(0,grouped16bits.GetLength(0)/2)
+							.Select( x => grouped16bits [ x * 2 ] + grouped16bits [ x * 2 + 1 ])
+							.ToArray<string>();
 
-							progress = 2.0;
-
-
-							var infos = indices.Select(x =>
-							new
-							{
-								TrackNum = (int)bits32list[x+3]
-								  ,
-								BlockNum = (int)bits32list[x+1]
-								   ,
-								DataCount =   (int)bits32list[x+5]
-								   ,
-								Index = x
-							}) // x is Header indices
-                                    .ToList(); // Ok Double Check
-
-							var threeblock = infos.Take(20);
-
-
-							progress = 7.0;
-
-							StringBuilder stb = new StringBuilder();
-							infos.ActLoop( x =>
-							{
-								stb.Append( x.TrackNum.ToString() );
-								stb.Append( ',' );
-								stb.Append( x.BlockNum.ToString() );
-								stb.Append( ',' );
-								stb.Append( x.Index.ToString() );
-								stb.Append( ',' );
-								stb.Append( x.DataCount.ToString() );
-								stb.Append( Environment.NewLine );
-
-							}
-						);
-
-							var dir = System.IO.Path.GetDirectoryName( emdpath );
-							File.WriteAllText( dir +"\\"+ "info.csv" , stb.ToString() );
-
-							progress = 10.0;
-
-							double step  = 70.0/infos.Count;
-
-							var swapped = infos.Select( (x , i) =>
-						 bits16list.Skip(x.Index   ).Take( (int)x.DataCount).Select(s => (byte)(s*255.0/ 65536.0)).ToArray().Act(y => progress += step)
-						 ).ToList();
-
-							var infoWithData =
-								infos.Zip( swapped ,(f,s) => new EmdInfoData( f.TrackNum , f.BlockNum, s )
-								).ToList(); // [( TrackNum , BlockNum , Data)]
-
-							//bitmaps [ i ] = CopyDataToBitmap( oneTrackdata , w , trackdatas.Count() );
-							//var counter = infoWithData.Where( x => x.TrackNum == 0);
-							//Bitmap tempimg = new Bitmap();
-
-
-
-							Console.WriteLine( "Step7 : " + stw.ElapsedMilliseconds );
-							stw.Restart();
-
-							var ordDataInfo = infoWithData
-								.OrderBy( x => x.TrackNum )
-								.ThenBy( x => x.BlockNum)
-								.ToList(); // [( TrackNum , BlockNum , Data )] ordered by track and block number
-
-							var trackLimit = infoWithData.Last().TrackNum;
-
-							BlockWidth = infoWithData.First().Data.Count();
-							EmdData = ordDataInfo;
-							TrackLimitation = trackLimit + 1;
-						} , TaskCreationOptions.LongRunning);
-
-					}
-					else
-					{
+						stw.Start();
 						
-							progress = 1.0;
-
-
-							var bits8list = File.ReadAllBytes( emdpath );
-
-							var oneblock = bits8list.Skip(32768).Take(224).ToArray();
-							File.WriteAllBytes(@"D:\03JobPro\2017\013_Polygon\temp\Block.csv" , oneblock);
-
-							ushort[] bits16list = new ushort[bits8list.Length / 2];
-							Buffer.BlockCopy(bits8list , 0 , bits16list,0,bits8list.Length);
-
-							uint[] bits32list = new uint[bits8list.Length / 4];
-							Buffer.BlockCopy(bits8list , 0 , bits32list,0,bits8list.Length);
-
-							//UInt64[] bits64list = new UInt64[bits8list.Length / 8];
-							//Buffer.BlockCopy(bits32list , 0 , bits64list,0,bits8list.Length);
-
-							var indices = bits32list.IndicesOf(x => x == 35192831)
-												.Select( x => x)
-												.ToArray<int>();
 
 
 
-							progress = 2.0;
+						progress = 1.0;
 
 
-							var infos = indices.Select(x =>
+						var bits8list = File.ReadAllBytes( emdpath );
+
+						var oneblock = bits8list.Skip(32768).Take(224).ToArray();
+						File.WriteAllBytes(@"D:\03JobPro\2017\013_Polygon\temp\Block.csv" , oneblock);
+
+
+						var oneblockchar = grouped8bits.Skip(32768).Take(224).ToArray();
+						
+
+
+						ushort[] bits16list = new ushort[bits8list.Length / 2];
+						Buffer.BlockCopy(bits8list , 0 , bits16list,0,bits8list.Length);
+						var oneblock16ch = grouped16bits.Skip(32768/2).Take(112).ToArray();
+						var oneblock16 = bits16list.Skip(32768/2).Take(112).ToArray();
+
+
+						uint[] bits32list = new uint[bits8list.Length / 4];
+						uint[] bits32list2 = new uint[bits8list.Length / 4];
+						Buffer.BlockCopy(bits16list , 0 , bits32list,0,bits8list.Length);
+						Buffer.BlockCopy(bits8list , 0 , bits32list2,0,bits8list.Length);
+
+						//UInt64[] bits64list = new UInt64[bits8list.Length / 8];
+						//Buffer.BlockCopy(bits32list , 0 , bits64list,0,bits32list.Length);
+
+
+						Console.WriteLine( "Step1 : " + stw.ElapsedMilliseconds );
+						stw.Restart();
+
+
+						var indices = grouped64bits.IndicesOf( x => x == "FFFF0218") // Find Pattern
+                                       .Select( x => x*4) // 32bits Len -> 8bits Len
+                                       .ToArray<int>(); //  of 8bits 
+
+						
+						bits32list.Select(x => (double)x).ToList();
+						StringBuilder sb = new StringBuilder();
+
+
+						int cnt = 0;
+						for (int j = 0; j < bits32list.Length/16; j++)
+						{
+							for (int i = 0; i < 16; i++)
+							{
+								sb.Append(bits32list[cnt]);
+								sb.Append(",");
+								cnt++;
+							}
+							sb.Append(Environment.NewLine);
+						}
+
+						//File.WriteAllText(@"D:\03JobPro\2017\013_Polygon\0918\test\.test22.csv" , sb.ToString());
+
+						progress = 2.0;
+
+
+						var infos = indices.Select(x =>
 							new
 							{
-								TrackNum = (int)bits32list[x+3]
+								TrackNum = (int)bits32list[x/4+3]
 								  ,
-								BlockNum = (int)bits32list[x+1]
+								BlockNum = (int)bits32list[x/4+1]
 								   ,
-								DataCount =   (int)bits32list[x+5]
+								DataCount =   (int)bits32list[x/4+5]
 								   ,
 								Index = x
 							}) // x is Header indices
-                                    .ToList(); // Ok Double Check
+                                    .ToList();
 
-							var threeblock = infos.Take(20);
+						var datasjw = 
+						progress = 7.0;
 
+						StringBuilder stb = new StringBuilder();
+						infos.ActLoop( x =>
+						 {
+							 stb.Append( x.TrackNum.ToString() );
+							 stb.Append( ',' );
+							 stb.Append( x.BlockNum.ToString() );
+							 stb.Append( ',' );
+							 stb.Append( x.Index.ToString() );
+							 stb.Append( Environment.NewLine );
 
-							progress = 7.0;
-
-							StringBuilder stb = new StringBuilder();
-							infos.ActLoop( x =>
-							{
-								stb.Append( x.TrackNum.ToString() );
-								stb.Append( ',' );
-								stb.Append( x.BlockNum.ToString() );
-								stb.Append( ',' );
-								stb.Append( x.Index.ToString() );
-								stb.Append( ',' );
-								stb.Append( x.DataCount.ToString() );
-								stb.Append( Environment.NewLine );
-
-							}
+						 }
 						);
+						var dir = System.IO.Path.GetDirectoryName( emdpath );
 
-							var dir = System.IO.Path.GetDirectoryName( emdpath );
-							File.WriteAllText( dir +"\\"+ "info.csv" , stb.ToString() );
+						File.WriteAllText( dir +"\\"+ "info.csv" , stb.ToString() );
+						
+						Console.WriteLine( "Step5 : " + stw.ElapsedMilliseconds );
+						stw.Restart();
+						progress = 10.0;
 
-							progress = 10.0;
+						double step  = 70.0/infos.Count;
 
-							double step  = 70.0/infos.Count;
-
-							var swapped = infos.Select( (x , i) =>
-						 bits16list.Skip(x.Index   ).Take( (int)x.DataCount).Select(s => (byte)(s*255.0/ 65536.0)).ToArray().Act(y => progress += step)
+						var swapped = infos.Select( x =>
+						 bits16list.Skip(x.Index + 12).Take( (int)x.DataCount).Select(s => (byte)(s*255.0/ 65536.0)).ToArray().Act(y => progress += step)
 						 ).ToList();
 
-							var infoWithData =
+						var infoWithData =
 								infos.Zip( swapped ,(f,s) => new EmdInfoData( f.TrackNum , f.BlockNum, s )
 								).ToList(); // [( TrackNum , BlockNum , Data)]
 
-							//bitmaps [ i ] = CopyDataToBitmap( oneTrackdata , w , trackdatas.Count() );
-							//var counter = infoWithData.Where( x => x.TrackNum == 0);
-							//Bitmap tempimg = new Bitmap();
+						Console.WriteLine( "Step7 : " + stw.ElapsedMilliseconds );
+						stw.Restart();
 
-
-
-							Console.WriteLine( "Step7 : " + stw.ElapsedMilliseconds );
-							stw.Restart();
-
-							var ordDataInfo = infoWithData
+						var ordDataInfo = infoWithData
 								.OrderBy( x => x.TrackNum )
 								.ThenBy( x => x.BlockNum)
 								.ToList(); // [( TrackNum , BlockNum , Data )] ordered by track and block number
 
-							var trackLimit = infoWithData.Last().TrackNum;
-
-							BlockWidth = infoWithData.First().Data.Count();
-							EmdData = ordDataInfo;
-							TrackLimitation = trackLimit + 1;
-						} , TaskCreationOptions.LongRunning);
-
-					}
+						var trackLimit = infoWithData.Last().TrackNum;
+						
+						BlockWidth = infoWithData.First().Data.Count();
+						EmdData = ordDataInfo;
+						TrackLimitation = trackLimit + 1;
+					} , TaskCreationOptions.LongRunning);
 
 					await task1;
+					Console.WriteLine( "task1 done " );
+					//Width = BlockWidth * TrackLimitation;
+					
+					//btnEmdExtract_Click( Basepath );
+					Console.WriteLine( "Step8 : " + stw.ElapsedMilliseconds );
+					stw.Restart();
 					await ToImageList( Basepath , TrackLimitation , BlockWidth );
+					Console.WriteLine( "Step9 : " + stw.ElapsedMilliseconds );
+					stw.Restart();
+
+
 					Mouse.OverrideCursor = null;
 					IsRunning = false;
 					lblSTatus.Content = "Waiting";
@@ -356,45 +311,7 @@ namespace PLImgViewer
 			  Console.WriteLine( "Image start" );
 			  double step = 18.0/tracknum;
 
-				  //Parallel.For( 0 , tracknum , i =>
-				  //{
-				  //  try
-				  //  {
-				  //	  List<byte[]> trackdatas;
-				  //	  if ( rlreverssed == true )
-				  //	  {
-				  //		  if ( i % 2 == 0 ) trackdatas = EmdData.Where( x => x.TrackNum == i )
-				  //												  .Select( x => x.Data )
-				  //												  .ToList();
-				  //		  else trackdatas = EmdData.Where( x => x.TrackNum == i )
-				  //									 .Select( x => x.Data.Reverse().ToArray() )
-				  //									 .ToList();
-				  //	  }
-				  //	  else
-				  //	  {
-				  //		  trackdatas = EmdData.Where( x => x.TrackNum == i ).Select( x => x.Data ).ToList();
-				  //	  }
-				  //
-				  //	  byte[] oneTrackdata = new byte[] { };
-				  //
-				  //	  if ( i % 2 == 0 ) oneTrackdata = trackdatas.Aggregate( ( f , s ) => f.Concat( s ).ToArray() );
-				  //	  else
-				  //	  {
-				  //		  if ( topbotrev == true ) trackdatas.Reverse();
-				  //		  oneTrackdata = trackdatas.Aggregate( ( f , s ) => f.Concat( s ).ToArray() );
-				  //	  }
-				  //	  bitmaps [ i ] = CopyDataToBitmap( oneTrackdata , w , trackdatas.Count() );
-				  //  }
-				  //  finally
-				  //  {
-				  //	  progress += step;
-				  //  }
-				  //
-				  //
-				  //} );
-
-
-				  for ( int i = 0 ; i < tracknum ; i++ )
+				  Parallel.For( 0 , tracknum , i =>
 				  {
 					  try
 					  {
@@ -428,10 +345,50 @@ namespace PLImgViewer
 						  progress += step;
 					  }
 
-				  }
+
+				  } );
 
 
-				  for ( int i = 0 ; i < bitmaps.GetLength( 0 ) ; i++ )
+				  //for ( int i = 0 ; i < tracknum ; i++ )
+				  //{
+
+
+					 // try
+					 // {
+						//  List<byte[]> trackdatas;
+						//  if ( rlreverssed == true )
+						//  {
+						//	  if ( i % 2 == 0 ) trackdatas = EmdData.Where( x => x.TrackNum == i )
+						//											  .Select( x => x.Data )
+						//											  .ToList();
+						//	  else trackdatas = EmdData.Where( x => x.TrackNum == i )
+						//								 .Select( x => x.Data.Reverse().ToArray() )
+						//								 .ToList();
+						//  }
+						//  else
+						//  {
+						//	  trackdatas = EmdData.Where( x => x.TrackNum == i ).Select( x => x.Data ).ToList();
+						//  }
+
+						//  byte[] oneTrackdata = new byte[] { };
+
+						//  if ( i % 2 == 0 ) oneTrackdata = trackdatas.Aggregate( ( f , s ) => f.Concat( s ).ToArray() );
+						//  else
+						//  {
+						//	  if ( topbotrev == true ) trackdatas.Reverse();
+						//	  oneTrackdata = trackdatas.Aggregate( ( f , s ) => f.Concat( s ).ToArray() );
+						//  }
+						//  bitmaps [ i ] = CopyDataToBitmap( oneTrackdata , w , trackdatas.Count() );
+					 // }
+					 // finally
+					 // {
+						//  progress += step;
+					 // }
+
+				  //}
+
+
+					for ( int i = 0 ; i < bitmaps.GetLength( 0 ) ; i++ )
 					{
 						bitmaps [ i ].Save( basepah + "\\" + i.ToString( "D3" ) + ".bmp" );
 					}
